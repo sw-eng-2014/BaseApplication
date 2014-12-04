@@ -1,15 +1,23 @@
 #include "Base.h"
  
+/*The base application for Ogre
+	Made by Dennis Mark
+	University of Technology Wroclaw
+*/
+
 //-------------------------------------------------------------------------------------
+//Constructor init all variables
 Base::Base(void)
 	 : mRoot(0),
     mPluginsCfg(Ogre::StringUtil::BLANK),
 	mOgreCfg(Ogre::StringUtil::BLANK),
 	mOgreLog(Ogre::StringUtil::BLANK),
-	mResourcesCfg(Ogre::StringUtil::BLANK)
+	mResourcesCfg(Ogre::StringUtil::BLANK),
+	mCloseApplication(false)
 {
 }
 //-------------------------------------------------------------------------------------
+//Destructor clear window and mRoot
 Base::~Base(void)
 {
 	Ogre::WindowEventUtilities::removeWindowEventListener(mWindow, this);
@@ -17,92 +25,15 @@ Base::~Base(void)
 	delete mRoot;
 }
  
+//-------------------------------------------------------------------------------------
+//Go start running the application
 bool Base::go(void)
 {
 	return setup();
 }
 
-	bool Base::frameRenderingQueued(const Ogre::FrameEvent& evt)
-	{
-		//Static variables 
-		static bool mMouseDown = false;     // If a mouse button is depressed
-		static Ogre::Real mRotate = 0.13;   // The rotate constant
-		static Ogre::Real mMove = 250;      // The movement constant
-		bool currMouse = mMouse->getMouseState().buttonDown(OIS::MB_Left);
-
-		if(mWindow->isClosed())
-			return false;
- 
-		//Need to capture/update each device
-		mKeyboard->capture();
-		mMouse->capture();
- 
-		if(mKeyboard->isKeyDown(OIS::KC_ESCAPE))
-			return false;
- 
-		//Togle light on and of 
-		if (currMouse && ! mMouseDown)
-		{
-			Ogre::Light* light = mSceneMgr->getLight("pointLight");
-			light->setVisible(! light->isVisible());
-		}
-		mMouseDown = currMouse;
-		//Move character
-		Ogre::Vector3 transVector = Ogre::Vector3::ZERO;
-		if (mKeyboard->isKeyDown(OIS::KC_W)) // Forward
-		{
-			transVector.z -= mMove;
-		}
-		if (mKeyboard->isKeyDown(OIS::KC_S)) // Backward
-		{
-			transVector.z += mMove;
-		}
-		if (mKeyboard->isKeyDown(OIS::KC_A)) // Left - yaw or strafe
-		{
-			if(mKeyboard->isKeyDown( OIS::KC_LSHIFT ))
-			{
-				// Yaw left
-				mSceneMgr->getSceneNode("PenguinNode")->yaw(Ogre::Degree(mRotate * 5));
-			} else {
-				transVector.x -= mMove; // Strafe left
-			}
-		}
-		if (mKeyboard->isKeyDown(OIS::KC_D)) // Right - yaw or strafe
-		{
-			if(mKeyboard->isKeyDown( OIS::KC_LSHIFT ))
-			{
-				// Yaw right
-				mSceneMgr->getSceneNode("PenguinNode")->yaw(Ogre::Degree(-mRotate * 5));
-			} else {
-				transVector.x += mMove; // Strafe right
-			}
-		}
-		if (mKeyboard->isKeyDown(OIS::KC_Z)) // Up
-		{
-			transVector.y += mMove;
-		}
-		if (mKeyboard->isKeyDown(OIS::KC_X)) // Down
-		{
-			transVector.y -= mMove;
-		}
-		if (mKeyboard->isKeyDown(OIS::KC_1)) // Change speed
-		{
-			mMove = 125;
-			mRotate = 0.07;
-		}
-		if (mKeyboard->isKeyDown(OIS::KC_2)) // Change speed
-		{
-			mMove = 250;
-			mRotate = 0.13;
-		}
-		mSceneMgr->getSceneNode("PenguinNode")->translate(transVector * evt.timeSinceLastFrame, Ogre::Node::TS_LOCAL);
-		
-
-
-		return true;
-	}
-
- //Adjust mouse clipping area
+//-------------------------------------------------------------------------------------
+//Adjust mouse clipping area when window resizes
 void Base::windowResized(Ogre::RenderWindow* rw)
 {
     unsigned int width, height, depth;
@@ -113,8 +44,8 @@ void Base::windowResized(Ogre::RenderWindow* rw)
     ms.width = width;
     ms.height = height;
 }
- 
-//Unattach OIS before window shutdown (very important under Linux)
+//------------------------------------------------------------------------------------- 
+//Unattach OIS before window shutdown
 void Base::windowClosed(Ogre::RenderWindow* rw)
 {
     //Only close for window that created OIS (the Base window in these demos)
@@ -131,11 +62,14 @@ void Base::windowClosed(Ogre::RenderWindow* rw)
     }
 }
 
+//-------------------------------------------------------------------------------------
+//Main function for the setup runs all different setup sequences
 bool Base::setup(void)
 {
 	createRoot();
 	loadConfig();
 	if (!generateRenderWindow()) return false;
+	createSceneBase();
 	createScene();
 	createCamera();
 	createViewports();
@@ -144,6 +78,9 @@ bool Base::setup(void)
 
 	return true;
 }
+
+//-------------------------------------------------------------------------------------
+//Create the mRoot variable
 void Base::createRoot(void)
 {
 	mOgreCfg = "ogre.cfg";
@@ -156,6 +93,9 @@ void Base::createRoot(void)
 	// construct Ogre::Root
     mRoot = new Ogre::Root(mPluginsCfg,mOgreCfg,mOgreLog);
 }
+
+//-------------------------------------------------------------------------------------
+//Load the config file and all the resources
 void Base::loadConfig(void)
 {
 	#ifdef _DEBUG
@@ -185,6 +125,7 @@ void Base::loadConfig(void)
 	}
 }
 
+//-------------------------------------------------------------------------------------
 bool Base::generateRenderWindow(void)
 {
 		//Render window
@@ -204,20 +145,15 @@ bool Base::generateRenderWindow(void)
 		return true;
 }
 
-void Base::createScene(void)
+//-------------------------------------------------------------------------------------
+//Create the scene manager and the default scene 
+void Base::createSceneBase(void)
 {
 		// Create the SceneManager, in this case a generic one
 		mSceneMgr = mRoot->createSceneManager("DefaultSceneManager");
 		//Set settings
-		mSceneMgr->setAmbientLight(Ogre::ColourValue(0, 0, 0));
+		mSceneMgr->setAmbientLight(Ogre::ColourValue(0.8,0.8,0.8));
 		mSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_STENCIL_ADDITIVE);
-
-		//Create penguin
-		Ogre::Entity* entPenguin = mSceneMgr->createEntity("Penguin", "penguin.mesh");
-		entPenguin -> setCastShadows(true);
-		Ogre::SceneNode* nodPenguin = mSceneMgr->getRootSceneNode()->createChildSceneNode("PenguinNode", Ogre::Vector3( 0, 20, 0 ));
-		nodPenguin->scale( 1, 1, 1); 
-		nodPenguin->attachObject(entPenguin);
   
 		//Create floor 
 		Ogre::Plane plane(Ogre::Vector3::UNIT_Y, 0);
@@ -231,37 +167,35 @@ void Base::createScene(void)
 		entGround->setMaterialName("Examples/Rockwall");
 		entGround->setCastShadows(false);
 
-		// Add block 1 
-		Ogre::Entity* entBlock1 = mSceneMgr->createEntity("Block1", "cube.mesh");
-		entBlock1 -> setCastShadows(true);
-		Ogre::SceneNode* nodBlock1 = mSceneMgr->getRootSceneNode()->createChildSceneNode("Bock1Node", Ogre::Vector3( 100, 0, 100 ));
-		nodBlock1->scale( .1, .5, .1); 
-		nodBlock1->attachObject(entBlock1);
-
-		// Add block 2
-		Ogre::Entity* entBlock2 = mSceneMgr->createEntity("Block2", "cube.mesh");
-		entBlock2 -> setCastShadows(true);
-		Ogre::SceneNode* nodBlock2 = mSceneMgr->getRootSceneNode()->createChildSceneNode("Bock2Node", Ogre::Vector3( -100, 0, -100 ));
-		nodBlock2->scale( 1, 1, 1); 
-		nodBlock2->attachObject(entBlock2);
-
 		// Create a light
 		Ogre::Light* light = mSceneMgr->createLight("BaseLight");
 		light ->setType(Ogre::Light::LT_POINT);
 		light->setPosition(100,100,100);
 
 }
+
+//-------------------------------------------------------------------------------------
+//Create the scene manager and the default scene 
+void Base::createScene(void)
+{
+	//Empty function for the creation of the base scene
+}
+//-------------------------------------------------------------------------------------
+//Create the camera
 void Base::createCamera(void)
 {
 		// Create the camera
 		mCamera = mSceneMgr->createCamera("PlayerCam");
  
 		// Position it at 80 in Z direction
-		mCamera->setPosition(Ogre::Vector3(200,200,200));
+		mCamera->setPosition(Ogre::Vector3(0,100,100));
 		// Look back along -Z
 		mCamera->lookAt(Ogre::Vector3(0,0,0));
 		mCamera->setNearClipDistance(5);
 }
+
+//-------------------------------------------------------------------------------------
+// Create the viewports
 void Base::createViewports(void)
 {
 		// Create one viewport, entire window
@@ -272,6 +206,9 @@ void Base::createViewports(void)
 		mCamera->setAspectRatio(
 		Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));
 }
+
+//-------------------------------------------------------------------------------------
+// Start the OIS for the keyboard input
 void Base::startOIS(void)
 {
 		Ogre::LogManager::getSingletonPtr()->logMessage("*** Initializing OIS ***");
@@ -285,9 +222,10 @@ void Base::startOIS(void)
  
 		mInputManager = OIS::InputManager::createInputSystem( pl );
 		
-		mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject( OIS::OISKeyboard, false ));
-		mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject( OIS::OISMouse, false ));
-
+		mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject( OIS::OISKeyboard, true ));
+		mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject( OIS::OISMouse, true ));
+		mMouse->setEventCallback(this);
+		mKeyboard->setEventCallback(this);
 		//
 		//Set initial mouse clipping size
 		windowResized(mWindow);
@@ -296,8 +234,52 @@ void Base::startOIS(void)
 		Ogre::WindowEventUtilities::addWindowEventListener(mWindow, this);
 
 }
+
+//-------------------------------------------------------------------------------------
+//Start the rendering handle the final items
 void Base::finalTouch(void)
 {
 		mRoot->addFrameListener(this);
 		mRoot->startRendering();
 }
+
+//-------------------------------------------------------------------------------------
+//Frame rendering, this function occures before the frame rendering is done
+bool Base::frameRenderingQueued(const Ogre::FrameEvent& evt)
+	{
+		if(mWindow->isClosed())
+			return false;
+		if(mCloseApplication)
+			return false;
+
+		//Need to capture/update each device
+		mKeyboard->capture();
+		mMouse->capture();
+		return true;
+	}
+
+//-------------------------------------------------------------------------------------
+//Key pressed event
+bool Base::keyPressed(const OIS::KeyEvent &arg){
+	
+	if (arg.key == OIS::KC_ESCAPE)  
+    {
+        mCloseApplication =true;
+    }
+	return true;}
+
+//-------------------------------------------------------------------------------------
+//Key released event
+bool Base::keyReleased(const OIS::KeyEvent &arg){return true;}
+
+//-------------------------------------------------------------------------------------
+//Mouse moved event
+bool Base::mouseMoved(const OIS::MouseEvent &arg){return true;}
+
+//-------------------------------------------------------------------------------------
+// Mouse pressed event
+bool Base::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id){return true;}
+
+//-------------------------------------------------------------------------------------
+// Mouse released event
+bool Base::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id){return true;}

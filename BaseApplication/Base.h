@@ -16,15 +16,26 @@
 
 #include <OgreMeshManager.h>
 
-class Base : public Ogre::WindowEventListener, public Ogre::FrameListener
+
+class Base : public Ogre::WindowEventListener, public Ogre::FrameListener,  public OIS::KeyListener, public OIS::MouseListener
 {
 public:
     Base(void);
     virtual ~Base(void);
     bool go(void);
 
+	// Private functions 
 private:
-
+	virtual bool setup(void);
+	virtual void createRoot(void);
+	virtual void loadConfig(void);
+	virtual bool generateRenderWindow(void);
+	virtual void createSceneBase(void);
+	virtual void createScene(void);
+	virtual void createCamera(void);
+	virtual void createViewports(void);
+	virtual void startOIS(void);
+	virtual void finalTouch(void);
 
 protected: 
 	// Ogre::WindowEventListener
@@ -34,28 +45,25 @@ protected:
 	// Ogre::FrameListener
 	virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 
-	//
-	virtual bool setup(void);
-	virtual void createRoot(void);
-	virtual void loadConfig(void);
-	virtual bool generateRenderWindow(void);
-	virtual void createScene(void);
-	virtual void createCamera(void);
-	virtual void createViewports(void);
-	virtual void startOIS(void);
-	virtual void finalTouch(void);
+	// Mouse events
+	virtual bool keyPressed(const OIS::KeyEvent &arg);
+    virtual bool keyReleased(const OIS::KeyEvent &arg);
+    virtual bool mouseMoved(const OIS::MouseEvent &arg);
+    virtual bool mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id);
+    virtual bool mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id);
 
+	//Ogre
 	Ogre::Root* mRoot;
     Ogre::String mPluginsCfg;
 	Ogre::String mOgreCfg;
 	Ogre::String mOgreLog;
 	Ogre::String mResourcesCfg;
 	Ogre::RenderWindow* mWindow;
-
 	Ogre::SceneManager* mSceneMgr;
-
 	Ogre::Camera* mCamera;
+	bool mCloseApplication; 
 
+	//OIS
 	OIS::InputManager* mInputManager;
 	OIS::Mouse*    mMouse;
 	OIS::Keyboard* mKeyboard;
