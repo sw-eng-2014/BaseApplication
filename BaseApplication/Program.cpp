@@ -1,5 +1,4 @@
 #include "Program.h"
-#include "DynamicLines.h"
 //-------------------------------------------------------------------------------------
 Program::Program(void)
 {
@@ -17,7 +16,6 @@ void Program::createScene(void)
 		Ogre::SceneNode* nodPenguin = mSceneMgr->getRootSceneNode()->createChildSceneNode("PenguinNode", Ogre::Vector3( 0, 20, 0 ));
 		nodPenguin->scale( .1, .1, .1); 
 		//nodPenguin->attachObject(entPenguin);
-		Ogre::LogManager::getSingletonPtr()->logMessage("*** Create second scenenode ***");
 		Ogre::SceneNode* child = nodPenguin->createChildSceneNode("MoveNode");
 		child->attachObject(entPenguin);
 		child->translate(-150,0,0);
@@ -26,7 +24,6 @@ void Program::createScene(void)
 //Creation of frame listner
  void Program::createFrameListener(void){
 	mMove = 250;
-	mDirection = Ogre::Vector3::ZERO;
  }
  //-------------------------------------------------------------------------------------
 //Key pressed event

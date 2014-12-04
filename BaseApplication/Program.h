@@ -17,6 +17,4 @@ protected:
 	virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 	virtual void createFrameListener(void);
 	Ogre::Real mMove;            // The movement constant
-	Ogre::Vector3 mDirection;    // Value to move in the correct direction
- 
 };
