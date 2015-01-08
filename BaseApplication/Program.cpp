@@ -19,6 +19,13 @@ void Program::createScene(void)
 		Ogre::SceneNode* child = nodPenguin->createChildSceneNode("MoveNode");
 		child->attachObject(entPenguin);
 		child->translate(-150,0,0);
+
+
+	Ogre::Entity* diningTable = mSceneMgr->createEntity( "Table", "exercise1.mesh" );
+	diningTable -> setCastShadows(true);
+	Ogre::SceneNode* diningTableNode = mSceneMgr->getRootSceneNode()->createChildSceneNode( "Table", Ogre::Vector3( 0, 0, 0 ) );
+	diningTableNode->attachObject( diningTable );
+	diningTableNode->scale(60,60,60);
 }
 //-------------------------------------------------------------------------------------
 //Creation of frame listner

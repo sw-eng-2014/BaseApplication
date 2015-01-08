@@ -239,6 +239,13 @@ void Base::startOIS(void)
 //Start the rendering handle the final items
 void Base::finalTouch(void)
 {
+		/*mInputContext.mKeyboard = mKeyboard;
+		mInputContext.mMouse = mMouse;
+		mTrayMgr = new OgreBites::SdkTrayManager("InterfaceName", mWindow, mInputContext, this);
+		mTrayMgr->showFrameStats(OgreBites::TL_BOTTOMLEFT);
+		mTrayMgr->showLogo(OgreBites::TL_BOTTOMRIGHT);
+		*/
+
 		mRoot->addFrameListener(this);
 		mRoot->startRendering();
 }
@@ -283,3 +290,4 @@ bool Base::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id){retur
 //-------------------------------------------------------------------------------------
 // Mouse released event
 bool Base::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id){return true;}
+

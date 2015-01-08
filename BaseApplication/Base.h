@@ -15,9 +15,10 @@
 #include <OgreWindowEventUtilities.h>
 
 #include <OgreMeshManager.h>
+#include "SdkTrays.h"
 
 
-class Base : public Ogre::WindowEventListener, public Ogre::FrameListener,  public OIS::KeyListener, public OIS::MouseListener
+class Base : public Ogre::WindowEventListener, public Ogre::FrameListener,  public OIS::KeyListener, public OIS::MouseListener, OgreBites::SdkTrayListener
 {
 public:
     Base(void);
@@ -67,4 +68,9 @@ protected:
 	OIS::InputManager* mInputManager;
 	OIS::Mouse*    mMouse;
 	OIS::Keyboard* mKeyboard;
+
+	//Ogre bits
+
+	OgreBites::InputContext     mInputContext;
+    OgreBites::SdkTrayManager*	mTrayMgr;
 };
